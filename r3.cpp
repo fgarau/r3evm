@@ -850,7 +850,11 @@ return a == b;
 char *nextcom(char *str)
 {
 str++;
-#if defined(__linux__)
+#if defined(__APPLE__)
+  if (r3tok5(str,"MAC|")) {	// mac
+    return str+4;
+  }
+#elif defined(__linux__)
   if (r3tok5(str,"LIN|")) {	// linux specific
     return str+4;
   }
@@ -862,12 +866,8 @@ str++;
   if (r3tok5(str,"RPI|")) {	// raspberry pi specific
     return str+4;
   }
-#elif defined(__APPLE__)
-  if (r3tok5(str,"MAC|")) {	// mac
-    return str+4;
-  }
-#elif __ANDROID__  
-  if (r3tok5(str,"AND|")) {	// mac
+#elif __ANDROID__
+  if (r3tok5(str,"AND|")) {	// android
     return str+4;
   }
 #else
