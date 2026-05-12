@@ -17,7 +17,7 @@
 #sys-glDeleteProgram #sys-glIsProgram #sys-glIsShader #sys-glGenVertexArrays
 #sys-glBindVertexArray #sys-glGetShaderInfoLog #sys-glGetProgramInfoLog
 #sys-glBindFragDataLocation #sys-glLinkProgram #sys-glActiveTexture #sys-glBindTexture
-#sys-glTexImage2D #sys-glUniform1i #sys-glTexParameteri #sys-glTexSubImage2D
+#sys-glTexImage2D #sys-glUniform1i #sys-glUniform1ui #sys-glTexParameteri #sys-glTexSubImage2D
 #sys-glEnable #sys-glDisable #sys-glDepthFunc #sys-glBlendFunc #sys-glDetachShader
 #sys-glDeleteShader #sys-glDeleteTextures #sys-glDeleteBuffers #sys-glDeleteVertexArrays
 #sys-glViewport #sys-glScissor #sys-glVertexPointer #sys-glClear #sys-glDrawElements
@@ -64,15 +64,27 @@
 #sys-glDrawBuffers
 #sys-glCheckFramebufferStatus
 #sys-glDeleteRenderbuffers
+#sys-glClearDepth
+#sys-glDebugMessageCallback
+#sys-glDebugMessageControl
+#sys-glGetBufferSubData
+#sys-glUniform1f
+#sys-glUniform2f
+#sys-glUniform3f
+#sys-glUniform4f
+#sys-glTexImage1D
+#sys-glObjectLabel
+#sys-glDeleteFramebuffers
+#sys-glGenerateMipmap
 
-|--------------------
 |------------------------UI
 #id	#idh #ida 	| now hot active
 #idf #idfh #idfa | focus
-#fx #fy #fw #fh
+
+##wix ##wiy ##wiw ##wih
 
 ::immBox | x y w h --
-	'fh ! 'fw ! 'fy ! 'fx ! ;	
+	'wih ! 'wiw ! 'wiy ! 'wix ! ;	
 	
 ::immFull | --
 	0 0 sw sh immBox ;
@@ -83,8 +95,8 @@
 	idh 'ida ! -1 'id ! ;
 	
 :immIn? | -- 0/-1
-	sdlx fx - $ffff and fw >? ( drop 0 ; ) drop
-	sdly fy - $ffff and fh >? ( drop 0 ; ) drop 
+	sdlx wix - $ffff and wiw >? ( drop 0 ; ) drop
+	sdly wiy - $ffff and wih >? ( drop 0 ; ) drop 
 	-1 ;
 	
 ::immMouse | -- state
@@ -100,6 +112,28 @@
 		-1 'idh ! 5 ; ) drop		| out up->5
 	sdlb 1? ( drop 3 ; ) drop 		| active->3
 	-1 'idh ! 6 ; 					| click->6		
+
+##uistate
+
+::immZone | -- ; Interaction is cx,cy,cw,th
+	immMouse 'uistate ! ;
+
+::uiEx?		uistate $100 and ;
+::uiEx!		uistate $100 or 'uistate ! ;
+
+| 0 = none
+| 1 = over
+| 2 = in (btn dwn)
+| 3 = active
+| 4 = active(outside)
+| 5 = out
+| 6 = click (btn up)
+
+::uiOvr		uiState $f and 1 <>? ( 2drop ; ) drop ex ;  | 'v --
+::uiDwn		uiState $f and 2 <>? ( 2drop ; ) drop ex ; | 'v --
+::uiSel		uiState $f and 3 <>? ( 2drop ; ) drop ex ;  | 'v -- 
+::uiUp		uiState $f and 5 <>? ( 2drop ; ) drop ex ;  | 'v --
+::uiClk		uiState $f and 6 <>? ( 2drop ; ) drop ex ; | 'v --
 
 
 | --- API Wrappers ---
@@ -153,6 +187,7 @@
 ::glBindTexture sys-glBindTexture sys2 drop ;
 ::glTexImage2D sys-glTexImage2D sys9 drop ;
 ::glUniform1i sys-glUniform1i sys2 drop ;
+::glUniform1ui sys-glUniform1ui sys2 drop ;
 ::glTexParameteri sys-glTexParameteri sys3 drop ;
 ::glTexSubImage2D sys-glTexSubImage2D sys9 drop ;
 ::glEnable sys-glEnable sys1 drop ;
@@ -249,6 +284,19 @@
 ::glDrawBuffers sys-glDrawBuffers sys2 drop ;
 ::glCheckFramebufferStatus sys-glCheckFramebufferStatus sys1 ;
 ::glDeleteRenderbuffers sys-glDeleteRenderbuffers sys2 drop ;
+
+::glClearDepth sys-glClearDepth sys1 drop ;
+::glDebugMessageCallback sys-glDebugMessageCallback sys2 drop ;
+::glDebugMessageControl sys-glDebugMessageControl sys6 drop ;
+::glGetBufferSubData sys-glGetBufferSubData sys4 drop ;
+::glUniform1f sys-glUniform1f sys2 drop ;
+::glUniform2f sys-glUniform2f sys3 drop ;
+::glUniform3f sys-glUniform3f sys4 drop ;
+::glUniform4f sys-glUniform4f sys5 drop ;
+::glTexImage1D sys-glTexImage1D sys8 drop ;
+::glObjectLabel sys-glObjectLabel sys4 drop ;
+::glDeleteFramebuffers sys-glDeleteFramebuffers sys2 drop ;
+::glGenerateMipmap sys-glGenerateMipmap sys1 drop ;
 | --- API Initialization ---
 
 ::InitGLAPI
@@ -269,6 +317,7 @@
     "glGetAttribLocation" SDL_GL_GetProcAddress 'sys-glGetAttribLocation !
     "glEnableVertexAttribArray" SDL_GL_GetProcAddress 'sys-glEnableVertexAttribArray !
     "glUniform1i" SDL_GL_GetProcAddress 'sys-glUniform1i !
+	"glUniform1ui" SDL_GL_GetProcAddress 'sys-glUniform1ui !
     "glGetUniformLocation" SDL_GL_GetProcAddress 'sys-glGetUniformLocation !
     "glUniform1iv" SDL_GL_GetProcAddress 'sys-glUniform1iv !
     "glUniform2iv" SDL_GL_GetProcAddress 'sys-glUniform2iv !
@@ -389,6 +438,19 @@
     "glDrawBuffers" SDL_GL_GetProcAddress 'sys-glDrawBuffers !
     "glCheckFramebufferStatus" SDL_GL_GetProcAddress 'sys-glCheckFramebufferStatus !
     "glDeleteRenderbuffers" SDL_GL_GetProcAddress 'sys-glDeleteRenderbuffers !
+	
+	"glClearDepth" SDL_GL_GetProcAddress 'sys-glClearDepth !
+    "glDebugMessageCallback" SDL_GL_GetProcAddress 'sys-glDebugMessageCallback !
+    "glDebugMessageControl" SDL_GL_GetProcAddress 'sys-glDebugMessageControl !
+    "glGetBufferSubData" SDL_GL_GetProcAddress 'sys-glGetBufferSubData !
+    "glUniform1f" SDL_GL_GetProcAddress 'sys-glUniform1f !
+    "glUniform2f" SDL_GL_GetProcAddress 'sys-glUniform2f !
+    "glUniform3f" SDL_GL_GetProcAddress 'sys-glUniform3f !
+    "glUniform4f" SDL_GL_GetProcAddress 'sys-glUniform4f !
+    "glTexImage1D" SDL_GL_GetProcAddress 'sys-glTexImage1D !
+    "glObjectLabel" SDL_GL_GetProcAddress 'sys-glObjectLabel !
+    "glDeleteFramebuffers" SDL_GL_GetProcAddress 'sys-glDeleteFramebuffers !
+	"glGenerateMipmap" SDL_GL_GetProcAddress 'sys-glGenerateMipmap !
     ;
 
 | --- SDL2 Context and Initialization ---
@@ -448,25 +510,19 @@
 :SDL_GL_DOUBLEBUFFER	5 ;
 :SDL_GL_DEPTH_SIZE	6 ;
 	
-#colorgl [ 0 0 0 1.0 ]
+#colorgl [ 0 0 0 1.0 1.0 ]
 #basegl [ 1.0 ]
 
-
-::memfloat | cnt adr --
-	>a ( 1? 1- da@ f2fp da!+ ) drop ;
-	
-::mem2float | cnt src dst --
-	>b >a ( 1? 1- a@ f2fp db!+ ) drop ;
-
-::memd2float | cnt src dst --
-	>b >a ( 1? 1- da@ f2fp db!+ ) drop ;
-	
 ::GLpaper | $ffffff --
 	'colorgl >a
 	dup 16 >> $ff and 1.0 8 *>> da!+
 	dup 8 >> $ff and 1.0 8 *>> da!+
-	$ff and 1.0 8 *>> da!
-	4 'colorgl memfloat ;
+	$ff and 1.0 8 *>> da!+
+	1.0 da!
+	5 'colorgl memfloat ;
+	
+::GlDepth
+	'basegl ! 1 'basegl memfloat ;
 	
 ::GLcls
 	$1800 0 'colorgl glClearBufferfv | GL_COLOR
@@ -495,3 +551,5 @@
 	
 ::GLUpdate
    SDL_windows SDL_GL_SwapWindow ;
+
+
